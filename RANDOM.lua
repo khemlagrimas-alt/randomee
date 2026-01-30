@@ -1,5 +1,5 @@
 --[[ 
-    VOID.Δ (v11.1) - DELTA PREMIUM (QUANTUM CHECKED & VERIFIED)
+    VOID.Δ (v11.5) - DELTA PREMIUM (RUNTIME ERROR FIX)
     Instructions: 
     1. Open Roblox Studio.
     2. Go to StarterGui.
@@ -49,7 +49,7 @@ local States = {
 	TpWalk = false, TpWalkSpeed = 5,
 	HatSpin = false,
 	LoopGoto = nil, LoopBring = nil, LoopKill = nil,
-	Orbit = nil, Stare = nil,
+	Orbit = nil, Stare = nil, Viewing = nil,
 	ClickTP = false, AntiAfk = false,
 	Spamming = false, SpamText = "",
 	Xray = false, Esp = false,
@@ -90,7 +90,6 @@ local function createNotification(text, isSuccess)
 	NotifyFrame.BackgroundColor3 = Colors.Sidebar
 	NotifyFrame.ZIndex = 200
 	NotifyFrame.Parent = ScreenGui
-
 	Instance.new("UICorner", NotifyFrame).CornerRadius = UDim.new(0, 8)
 	local Stroke = Instance.new("UIStroke", NotifyFrame)
 	Stroke.Color = isSuccess and Colors.Success or Colors.Danger
@@ -124,7 +123,9 @@ local function createDummyWindow(title, contentText)
 	Win.BackgroundColor3 = Colors.Background
 	Win.Active = true Win.Draggable = true Win.ZIndex = 50
 	Instance.new("UICorner", Win).CornerRadius = UDim.new(0, 8)
-	local WS = Instance.new("UIStroke", Win) WS.Color = Colors.Accent WS.Thickness = 1
+	local WS = Instance.new("UIStroke", Win)
+	WS.Color = Colors.Accent
+	WS.Thickness = 1
 	local Top = Instance.new("Frame", Win)
 	Top.Size = UDim2.new(1, 0, 0, 30)
 	Top.BackgroundColor3 = Colors.Sidebar
@@ -172,12 +173,14 @@ Instance.new("UICorner", Launcher).CornerRadius = UDim.new(1, 0)
 local LStroke = Instance.new("UIStroke", Launcher)
 LStroke.Thickness = 3 LStroke.Color = Colors.Accent
 
+-- Force Launcher Visible Backup
 task.delay(2.5, function()
 	if Launcher.Size.X.Offset == 0 then
 		Launcher.Size = UDim2.new(0, 60, 0, 60)
 	end
 end)
 
+-- Drag Logic
 local draggingL, dragInputL, dragStartL, startPosL
 local wasDragging = false
 Launcher.InputBegan:Connect(function(input)
@@ -204,12 +207,11 @@ UserInputService.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingL = false end
 end)
 
--- Main Frame with explicit dimensions
-local MainWidth, MainHeight = 600, 380 -- Defined here to prevent nil errors
+-- Main Frame
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, MainWidth, 0, MainHeight)
-MainFrame.Position = UDim2.new(0.5, -MainWidth/2, 1, 50)
+MainFrame.Size = UDim2.new(0, 600, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -300, 1, 50)
 MainFrame.BackgroundColor3 = Colors.Background
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 Instance.new("UIStroke", MainFrame).Color = Colors.Border
@@ -247,7 +249,6 @@ ContentFrame.Size = UDim2.new(1, -80, 1, -60)
 ContentFrame.Position = UDim2.new(0, 75, 0, 50)
 ContentFrame.BackgroundTransparency = 1
 
--- >> HOME TAB
 local HomeContent = Instance.new("Frame", ContentFrame)
 HomeContent.Size = UDim2.new(1, 0, 1, 0)
 HomeContent.BackgroundTransparency = 1
@@ -271,7 +272,7 @@ WelcomeTitle.Text = "Welcome, " .. Player.Name
 WelcomeTitle.TextColor3 = Colors.Text
 WelcomeTitle.Font = Enum.Font.GothamBold
 WelcomeTitle.TextSize = 20
-WelcomeTitle.TextXAlignment = "Left"
+WelcomeTitle.TextXAlignment = Enum.TextXAlignment.Left
 local RankLabel = Instance.new("TextLabel", UserProfile)
 RankLabel.Size = UDim2.new(1, -80, 0, 20)
 RankLabel.Position = UDim2.new(0, 80, 0, 40)
@@ -280,7 +281,7 @@ RankLabel.Text = "Delta Premium User"
 RankLabel.TextColor3 = Colors.Accent
 RankLabel.Font = Enum.Font.GothamMedium
 RankLabel.TextSize = 14
-RankLabel.TextXAlignment = "Left"
+RankLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 local StatsContainer = Instance.new("Frame", HomeContent)
 StatsContainer.Size = UDim2.new(1, 0, 1, -90)
@@ -301,7 +302,7 @@ local function createStatCard(title)
 	CTitle.TextColor3 = Colors.SecondaryText
 	CTitle.Font = Enum.Font.GothamMedium
 	CTitle.TextSize = 14
-	CTitle.TextXAlignment = "Left"
+	CTitle.TextXAlignment = Enum.TextXAlignment.Left
 	local CValue = Instance.new("TextLabel", Card)
 	CValue.Name = "ValueLabel"
 	CValue.Size = UDim2.new(1, -20, 0, 40)
@@ -311,7 +312,7 @@ local function createStatCard(title)
 	CValue.TextColor3 = Colors.Text
 	CValue.Font = Enum.Font.GothamBold
 	CValue.TextSize = 22
-	CValue.TextXAlignment = "Left"
+	CValue.TextXAlignment = Enum.TextXAlignment.Left
 	return CValue
 end
 local FPSValue = createStatCard("Frames Per Second")
@@ -413,8 +414,12 @@ CloseBtn.TextSize = 16
 local mainVisible = false
 local function toggleMain()
 	mainVisible = not mainVisible
-	-- Fixed: Use defined variables instead of nil properties
-	local mainTarget = mainVisible and UDim2.new(0.5, -MainWidth/2, 0.5, -MainHeight/2) or UDim2.new(0.5, -MainWidth/2, 1, 50)
+	local mw = MainFrame.AbsoluteSize.X
+	local mh = MainFrame.AbsoluteSize.Y
+	if mw == 0 then mw = 600 end
+	if mh == 0 then mh = 380 end
+
+	local mainTarget = mainVisible and UDim2.new(0.5, -mw/2, 0.5, -mh/2) or UDim2.new(0.5, -mw/2, 1, 50)
 	local barTarget = mainVisible and UDim2.new(0.5, -210, 1, -110) or UDim2.new(0.5, -210, 1, 50)
 	animate(MainFrame, {Position = mainTarget}, 0.4)
 	animate(CommandBarFrame, {Position = barTarget}, 0.4)
@@ -686,6 +691,11 @@ Commands["fullbright"] = function()
 	Lighting.Ambient = Color3.new(1,1,1) 
 end
 
+Commands["unfullbright"] = function() 
+	Lighting.Brightness = OriginalSettings.Brightness 
+	Lighting.Ambient = OriginalSettings.Ambient 
+end
+
 Commands["fov"] = function(args) 
 	Camera.FieldOfView = tonumber(args[2]) or 70 
 end
@@ -693,11 +703,15 @@ end
 Commands["view"] = function(args) 
 	local t = getTargets(args[2])[1] 
 	if t then 
-		Camera.CameraSubject = t.Character.Humanoid 
+		States.Viewing = t
+		if t.Character and t.Character:FindFirstChild("Humanoid") then
+			Camera.CameraSubject = t.Character.Humanoid 
+		end
 	end 
 end
 
 Commands["unview"] = function() 
+	States.Viewing = nil
 	Camera.CameraSubject = Player.Character.Humanoid 
 end
 
@@ -819,7 +833,12 @@ Commands["orbit"] = function(args)
 	local t = getTargets(args[2])[1]
 	if t then States.Orbit = t end
 end
-Commands["unorbit"] = function() States.Orbit = nil end
+Commands["unorbit"] = function() 
+	States.Orbit = nil 
+	if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+		Camera.CameraSubject = Player.Character.Humanoid
+	end
+end
 
 Commands["stare"] = function(args)
 	local t = getTargets(args[2])[1]
@@ -1075,6 +1094,14 @@ RunService.RenderStepped:Connect(function(dt)
 		root.CFrame = States.Orbit.Character.HumanoidRootPart.CFrame * CFrame.new(x, 0, z)
 		Camera.CameraSubject = States.Orbit.Character.Humanoid
 	end
+
+	if States.Viewing then
+		local t = States.Viewing
+		if t and t.Character and t.Character:FindFirstChild("Humanoid") then
+			Camera.CameraSubject = t.Character.Humanoid
+		end
+	end
+
 	if States.Stare and States.Stare.Character then root.CFrame = CFrame.new(root.Position, States.Stare.Character.HumanoidRootPart.Position) end
 
 	if States.Esp then
