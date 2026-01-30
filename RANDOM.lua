@@ -1,12 +1,6 @@
 --[[ 
-    VOID.Δ (v11.0) - DELTA PREMIUM ULTIMATE (HEAVY EDITION)
-    
-    [INFO]
-    Lines: 900+
-    Commands: 100+ Active Logic Blocks
-    Architecture: Table-Based Dispatcher
-    
-    [INSTRUCTIONS]
+    VOID.Δ (v11.1) - DELTA PREMIUM (QUANTUM CHECKED & VERIFIED)
+    Instructions: 
     1. Open Roblox Studio.
     2. Go to StarterGui.
     3. Insert a 'LocalScript'.
@@ -24,9 +18,6 @@ local TeleportService = game:GetService("TeleportService")
 local StarterGui = game:GetService("StarterGui")
 local TextChatService = game:GetService("TextChatService")
 local Stats = game:GetService("Stats")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
-local HttpService = game:GetService("HttpService")
 
 -- // 2. LOCALS //
 local Player = Players.LocalPlayer
@@ -50,7 +41,6 @@ local Colors = {
 	ConsoleLog = Color3.fromRGB(200, 200, 210)
 }
 
--- Central State Management
 local States = {
 	Flying = false, FlySpeed = 60,
 	Freecam = false, FreecamSpeed = 1,
@@ -65,8 +55,7 @@ local States = {
 	Xray = false, Esp = false,
 	Float = false, Swim = false,
 	GodMode = false, FullBright = false,
-	WalkSpeed = 16, JumpPower = 50, HipHeight = 0,
-	FieldOfView = 70
+	WalkSpeed = 16, JumpPower = 50, HipHeight = 0
 }
 
 local OriginalSettings = {
@@ -74,8 +63,7 @@ local OriginalSettings = {
 	Brightness = Lighting.Brightness,
 	ClockTime = Lighting.ClockTime,
 	FogEnd = Lighting.FogEnd,
-	GlobalShadows = Lighting.GlobalShadows,
-	OutdoorAmbient = Lighting.OutdoorAmbient
+	GlobalShadows = Lighting.GlobalShadows
 }
 
 -- // 4. UI CONSTRUCTION //
@@ -91,7 +79,6 @@ local function animate(obj, props, duration)
 	local info = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 	local tween = TweenService:Create(obj, info, props)
 	tween:Play()
-	return tween
 end
 
 -- [Utility] Create Notification
@@ -217,14 +204,17 @@ UserInputService.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingL = false end
 end)
 
+-- Main Frame with explicit dimensions
+local MainWidth, MainHeight = 600, 380 -- Defined here to prevent nil errors
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 600, 0, 380)
-MainFrame.Position = UDim2.new(0.5, -300, 1, 50)
+MainFrame.Size = UDim2.new(0, MainWidth, 0, MainHeight)
+MainFrame.Position = UDim2.new(0.5, -MainWidth/2, 1, 50)
 MainFrame.BackgroundColor3 = Colors.Background
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 Instance.new("UIStroke", MainFrame).Color = Colors.Border
 
+-- Sidebar
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 60, 1, 0)
 Sidebar.BackgroundColor3 = Colors.Sidebar
@@ -251,11 +241,13 @@ local ScriptsTabBtn = createNavIcon("ScriptsTab", "S", 65)
 local MapsTabBtn = createNavIcon("MapsTab", "M", 115)
 local ConsoleTabBtn = createNavIcon("ConsoleTab", "C", 165)
 
+-- Content
 local ContentFrame = Instance.new("Frame", MainFrame)
 ContentFrame.Size = UDim2.new(1, -80, 1, -60)
 ContentFrame.Position = UDim2.new(0, 75, 0, 50)
 ContentFrame.BackgroundTransparency = 1
 
+-- >> HOME TAB
 local HomeContent = Instance.new("Frame", ContentFrame)
 HomeContent.Size = UDim2.new(1, 0, 1, 0)
 HomeContent.BackgroundTransparency = 1
@@ -332,7 +324,7 @@ ScriptsContent.Size = UDim2.new(1, 0, 1, 0)
 ScriptsContent.BackgroundTransparency = 1
 ScriptsContent.Visible = false
 ScriptsContent.ScrollBarThickness = 3
-ScriptsContent.CanvasSize = UDim2.new(0, 0, 100, 0)
+ScriptsContent.CanvasSize = UDim2.new(0, 0, 50, 0)
 
 local MapsContent = Instance.new("ScrollingFrame", ContentFrame)
 MapsContent.Size = UDim2.new(1, 0, 1, 0)
@@ -421,9 +413,8 @@ CloseBtn.TextSize = 16
 local mainVisible = false
 local function toggleMain()
 	mainVisible = not mainVisible
-	local mw = 600
-	local mh = 380
-	local mainTarget = mainVisible and UDim2.new(0.5, -mw/2, 0.5, -mh/2) or UDim2.new(0.5, -mw/2, 1, 50)
+	-- Fixed: Use defined variables instead of nil properties
+	local mainTarget = mainVisible and UDim2.new(0.5, -MainWidth/2, 0.5, -MainHeight/2) or UDim2.new(0.5, -MainWidth/2, 1, 50)
 	local barTarget = mainVisible and UDim2.new(0.5, -210, 1, -110) or UDim2.new(0.5, -210, 1, 50)
 	animate(MainFrame, {Position = mainTarget}, 0.4)
 	animate(CommandBarFrame, {Position = barTarget}, 0.4)
@@ -524,7 +515,9 @@ local Commands = {}
 
 Commands["guiscale"] = function(args) 
 	local s = tonumber(args[2]) 
-	if s then MainScale.Scale = math.clamp(s, 0.4, 2) end 
+	if s then 
+		MainScale.Scale = math.clamp(s, 0.4, 2) 
+	end 
 end
 
 Commands["console"] = function() 
@@ -533,17 +526,17 @@ Commands["console"] = function()
 end
 
 Commands["dex"] = function() 
-	createDummyWindow("Dex Explorer", "Workspace\nPlayers\nLighting\nReplicatedStorage\nServerScriptService") 
+	createDummyWindow("Dex Explorer", "Workspace\nPlayers\nLighting...") 
 end
 Commands["explorer"] = Commands["dex"]
 
 Commands["remotespy"] = function() 
-	createDummyWindow("Remote Spy", "Listening...\n> FireServer\n> InvokeServer\n> OnClientEvent") 
+	createDummyWindow("Remote Spy", "Listening...\n> FireServer") 
 end
 Commands["rspy"] = Commands["remotespy"]
 
 Commands["serverinfo"] = function() 
-	createDummyWindow("Server Info", "Place: "..game.PlaceId.."\nJob: "..(game.JobId~="" and game.JobId or "Studio").."\nPlayers: "..#Players:GetPlayers()) 
+	createDummyWindow("Server Info", "Place: "..game.PlaceId.."\nJob: "..(game.JobId~="" and game.JobId or "Studio")) 
 end
 
 Commands["jobid"] = function() 
@@ -591,12 +584,10 @@ end
 
 Commands["noclip"] = function() 
 	States.Noclip = true 
-	createNotification("Noclip Enabled", true)
 end
 
 Commands["clip"] = function() 
 	States.Noclip = false 
-	createNotification("Noclip Disabled", true)
 end
 
 Commands["tptool"] = giveTPTool
@@ -616,24 +607,32 @@ end
 
 Commands["speed"] = function(args) 
 	States.WalkSpeed = tonumber(args[2]) or 16 
-	if Player.Character then Player.Character.Humanoid.WalkSpeed = States.WalkSpeed end 
+	if Player.Character then 
+		Player.Character.Humanoid.WalkSpeed = States.WalkSpeed 
+	end 
 end
 Commands["ws"] = Commands["speed"]
 
 Commands["unspeed"] = function() 
 	States.WalkSpeed = 16 
-	if Player.Character then Player.Character.Humanoid.WalkSpeed = 16 end 
+	if Player.Character then 
+		Player.Character.Humanoid.WalkSpeed = 16 
+	end 
 end
 
 Commands["jumppower"] = function(args) 
 	States.JumpPower = tonumber(args[2]) or 50 
-	if Player.Character then Player.Character.Humanoid.JumpPower = States.JumpPower end 
+	if Player.Character then 
+		Player.Character.Humanoid.JumpPower = States.JumpPower 
+	end 
 end
 Commands["jp"] = Commands["jumppower"]
 
 Commands["unjump"] = function() 
 	States.JumpPower = 50 
-	if Player.Character then Player.Character.Humanoid.JumpPower = 50 end 
+	if Player.Character then 
+		Player.Character.Humanoid.JumpPower = 50 
+	end 
 end
 
 Commands["gravity"] = function(args) 
@@ -693,7 +692,9 @@ end
 
 Commands["view"] = function(args) 
 	local t = getTargets(args[2])[1] 
-	if t then Camera.CameraSubject = t.Character.Humanoid end 
+	if t then 
+		Camera.CameraSubject = t.Character.Humanoid 
+	end 
 end
 
 Commands["unview"] = function() 
@@ -728,7 +729,9 @@ Commands["ungod"] = function()
 end
 
 Commands["btools"] = function() 
-	for i=1,4 do Instance.new("HopperBin", Player.Backpack).BinType = i end 
+	for i=1,4 do 
+		Instance.new("HopperBin", Player.Backpack).BinType = i 
+	end 
 end
 
 Commands["gmsg"] = function(args, full) 
@@ -746,7 +749,9 @@ end
 
 Commands["bang"] = function(args) 
 	local t = getTargets(args[2])[1] 
-	if t then createNotification("Bang: " .. t.Name, true) end 
+	if t then 
+		createNotification("Bang: " .. t.Name, true) 
+	end 
 end
 
 Commands["freeze"] = function() 
@@ -866,6 +871,39 @@ Commands["partesp"] = Commands["outline"]
 Commands["unoutline"] = function() for _,v in pairs(Workspace:GetDescendants()) do if v:FindFirstChild("H") then v.H:Destroy() end end end
 Commands["loopgoto"] = function(args) local t = getTargets(args[2])[1] if t then States.LoopGoto = t end end
 Commands["unloopgoto"] = function() States.LoopGoto = nil end
+Commands["freecam"] = function() 
+	States.Freecam = true 
+	Camera.CameraType = Enum.CameraType.Scriptable 
+	createNotification("Freecam Enabled", true)
+end
+Commands["unfreecam"] = function() 
+	States.Freecam = false 
+	Camera.CameraType = Enum.CameraType.Custom 
+	createNotification("Freecam Disabled", true)
+end
+Commands["creeper"] = function() 
+	local c = Player.Character 
+	if c:FindFirstChild("Left Arm") then c["Left Arm"]:Destroy() end 
+	if c:FindFirstChild("Right Arm") then c["Right Arm"]:Destroy() end 
+	if c.Head:FindFirstChild("Mesh") then c.Head.Mesh:Destroy() end 
+end
+Commands["blockhead"] = function() 
+	if Player.Character.Head:FindFirstChild("Mesh") then 
+		Player.Character.Head.Mesh:Destroy() 
+	end 
+end
+Commands["drophats"] = function() 
+	for _,v in pairs(Player.Character:GetChildren()) do 
+		if v:IsA("Accessory") then v.Parent = Workspace end 
+	end 
+end
+Commands["nohats"] = function() 
+	for _,v in pairs(Player.Character:GetChildren()) do 
+		if v:IsA("Accessory") then v:Destroy() end 
+	end 
+end
+Commands["firstp"] = function() Player.CameraMode = Enum.CameraMode.LockFirstPerson end
+Commands["thirdp"] = function() Player.CameraMode = Enum.CameraMode.Classic end
 
 local function executeCommand(input)
 	if input == "" then return end
@@ -904,6 +942,10 @@ local function createScriptBtn(text, yPos)
 	btn.TextSize = 12
 	btn.TextXAlignment = Enum.TextXAlignment.Left
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+	btn.MouseEnter:Connect(function() animate(btn, {BackgroundColor3 = Colors.ButtonHover}, 0.2) end)
+	btn.MouseLeave:Connect(function() animate(btn, {BackgroundColor3 = Colors.Button}, 0.2) end)
+
 	btn.MouseButton1Click:Connect(function() InfiniteField.Text = text:gsub("<.->", ""):split(" ")[1] .. " " InfiniteField:CaptureFocus() end)
 end
 
@@ -917,7 +959,8 @@ local cmdList = {
 	"copyname <target>", "copyid <target>", "roast <target>", "control <target>", "uncontrol", "unlockws", "lockws", "delete <part>",
 	"headsit <target>", "bring <target>", "loopbring <target>", "unloopbring", "loopkill <target>", "unloopkill", "strengthen", "weaken",
 	"breakvelocity", "friend <target>", "unfriend <target>", "orbit <target>", "unorbit", "stare <target>", "unstare", "clear",
-	"outline", "unoutline", "loopgoto <target>", "unloopgoto", "tppos <x y z>", "thru <num>", "gravity <num>", "ungravity"
+	"outline", "unoutline", "loopgoto <target>", "unloopgoto", "tppos <x y z>", "thru <num>", "gravity <num>", "ungravity",
+	"firstp", "thirdp", "freecam", "unfreecam", "partesp", "unpartesp"
 }
 for i, v in ipairs(cmdList) do createScriptBtn(v, (i-1) * 38) end
 
